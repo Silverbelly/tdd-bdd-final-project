@@ -134,7 +134,7 @@ class TestProductRoutes(TestCase):
         # Uncomment this code once READ is implemented
         #
 
-        # # Check that the location header was correct
+        # Check that the location header was correct
         # response = self.client.get(location)
         # self.assertEqual(response.status_code, status.HTTP_200_OK)
         # new_product = response.get_json()
@@ -170,11 +170,43 @@ class TestProductRoutes(TestCase):
         """ It should get a product """
         test_product = self._create_products(1)[0]
         response = self.client.get(f"{BASE_URL}/{test_product.id}")
-        print(f"{BASE_URL}/{test_product.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.json()
+        data = response.get_json()
         self.assertEqual(data["name"], test_product.name)
         self.assertEqual(data["description"], test_product.description)
+
+    def test_get_product_not_found(self):
+        """ It should not get a product - product not found"""
+        response = self.client.get(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        data = response.get_json()
+        self.assertIn("not found", data["message"])
+
+    def test_update_product(self):
+        """ It should update a product """
+
+        # Create a product and save it to the db
+        product = ProductFactory()
+        response = self.client.post(f"{BASE_URL}", json=product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created_product = response.get_json()
+
+        # Update the description and save it to db
+        created_product["description"] = "test"
+        response = self.client.put(f"{BASE_URL}/{created_product['id']}", json=created_product)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Verify the changes saved to the db
+        updated_product = response.get_json()
+        self.assertEqual(updated_product["description"], "test")
+
+    def test_update_product_not_found(self):
+        """ It should not update a product - product not found """
+
+        product = ProductFactory()
+        product.id = 0
+        response = self.client.put(f"{BASE_URL}/{product.id}", json=product.serialize())
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     ######################################################################
     # Utility functions
