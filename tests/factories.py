@@ -47,4 +47,3 @@ class ProductFactory(factory.Factory):
             Category.TOOLS,
         ]
     )
-
