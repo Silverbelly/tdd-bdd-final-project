@@ -148,7 +148,7 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(len(products), 0)
 
         # create 5 products
-        for i in range(5):
+        for _ in range(5):
             product = ProductFactory()
             product.create()
 
@@ -224,4 +224,3 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.category, category)
-
