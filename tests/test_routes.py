@@ -208,6 +208,30 @@ class TestProductRoutes(TestCase):
         response = self.client.put(f"{BASE_URL}/{product.id}", json=product.serialize())
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+    def test_delete_product(self):
+        """ It should delete a product """
+
+        # Create some test products
+        products = self._create_products(5)
+        product_count = self.get_product_count()
+        self.assertEqual(product_count, 5)
+
+        # Delete the first product
+        product_to_delete = products[0]
+        response = self.client.delete(f"{BASE_URL}/{product_to_delete.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Verify the product is not still in the db
+        response = self.client.get(f"{BASE_URL}/{product_to_delete.id}")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        product_count = self.get_product_count()
+        self.assertEqual(product_count, 4)
+
+    def test_delete_product_not_found(self):
+        """ It should not delete a product - product not found """
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     ######################################################################
     # Utility functions
     ######################################################################
@@ -215,7 +239,9 @@ class TestProductRoutes(TestCase):
     def get_product_count(self):
         """save the current number of products"""
         response = self.client.get(BASE_URL)
+        logging.debug("response.status_code = %x", response.status_code)
+        logging.debug("response = %s", response)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
-        # logging.debug("data = %s", data)
+        logging.info("data = %s", data)
         return len(data)
