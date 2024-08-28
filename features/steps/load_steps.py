@@ -48,11 +48,11 @@ def step_impl(context):
     #
     for row in context.table:
         product_data = {
-            "name" : row['name'],
-            "description" : row['description'],
-            "available" : row['available'] in ['True', 'true', '1'],
-            "category" : row['category'],
-            "price" : row['price']
+            "name": row['name'],
+            "description": row['description'],
+            "available": row['available'] in ['True', 'true', '1'],
+            "category": row['category'],
+            "price": row['price']
         }
         context.resp = requests.post(rest_endpoint, json=product_data)
         assert(context.resp.status_code == HTTP_201_CREATED)
