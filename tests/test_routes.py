@@ -272,7 +272,7 @@ class TestProductRoutes(TestCase):
     def test_list_by_category(self):
         """ It should list all products matching a category """
 
-         # Add a batch of products
+        # Add a batch of products
         products = self._create_products(10)
         test_category = products[0].category
         count = len([product for product in products if product.category == test_category])
@@ -293,7 +293,7 @@ class TestProductRoutes(TestCase):
         count = len([product for product in products if product.available is True])
 
         # Find all products matching the avilable flag
-        response = self.client.get(BASE_URL, query_string=f"available=true")
+        response = self.client.get(BASE_URL, query_string="available=true")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         data = response.get_json()
         self.assertEqual(len(data), count)

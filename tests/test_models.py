@@ -27,7 +27,7 @@ import os
 import logging
 import unittest
 from decimal import Decimal
-from service.models import Product, Category, db
+from service.models import Product, Category, db, DataValidationError
 from service import app
 from tests.factories import ProductFactory
 
@@ -132,6 +132,12 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(products[0].id, assigned_id)
         self.assertEqual(products[0].description, new_description)
 
+    def test_update_a_product_without_id(self):
+        """ It should not update a product without id """
+        product = ProductFactory()
+        product.id = None
+        self.assertRaises(DataValidationError, product.update)
+
     def test_delete_a_product(self):
         """ It should delete a product """
         product = ProductFactory()
@@ -224,3 +230,45 @@ class TestProductModel(unittest.TestCase):
         self.assertEqual(found.count(), count)
         for product in found:
             self.assertEqual(product.category, category)
+
+    def test_deserialize_with_invalid_data(self):
+        """ It should not deserialize, invalid data """
+        product = ProductFactory()
+        data = {
+            "id": 1,
+            "name": "test name",
+            "description": "test description",
+            "price": 5.99,
+            "available": True,
+            "category": "Bad Category"
+        }
+        self.assertRaises(DataValidationError, product.deserialize, data)
+        data["category"] = "FOOD"
+        data["price"] = None
+        self.assertRaises(DataValidationError, product.deserialize, data)
+        data["price"] = 1.00
+        data["available"] = None
+        self.assertRaises(DataValidationError, product.deserialize, data)
+
+    def test_find_by_price(self):
+        """ It should find products by price """
+
+        # create a batch of products to work with
+        products = ProductFactory.create_batch(10)
+        self.assertEqual(len(products), 10)
+
+        # save those products to the db
+        for product in products:
+            product.create()
+        self.assertEqual(len(Product.all()), 10)
+
+        # get the price of the first product and see how many there are with the same price
+        price = products[0].price
+        count = len([product for product in products if product.price == price])
+
+        # search the database by price and verify we found the correct number of records
+        # and that all their prices matches searched price
+        found = Product.find_by_price(price)
+        self.assertEqual(found.count(), count)
+        for product in found:
+            self.assertEqual(product.price, price)
